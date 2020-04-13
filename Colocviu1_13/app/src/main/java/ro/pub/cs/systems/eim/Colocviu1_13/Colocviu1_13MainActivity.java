@@ -2,8 +2,12 @@ package ro.pub.cs.systems.eim.Colocviu1_13;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -16,6 +20,10 @@ public class Colocviu1_13MainActivity extends AppCompatActivity {
     private TextView pressedView;
     private Button navigateButton;
     private int total = 0;
+
+    private int serviceStatus = Constants.SERVICE_STOPPED;
+
+    private IntentFilter intentFilter = new IntentFilter();
 
     private ButtonClickListener buttonClickListener = new ButtonClickListener();
     private class ButtonClickListener implements View.OnClickListener {
@@ -81,6 +89,13 @@ public class Colocviu1_13MainActivity extends AppCompatActivity {
                     pressedView.setText("");
                     break;
             }
+
+            if (total >= 4) {
+                Intent serviceIntent = new Intent(getApplicationContext(), Colocviu1_13Service.class);
+                serviceIntent.putExtra(Constants.SERVICE_COMMANDS, pressedView.getText().toString());
+                getApplication().startService(serviceIntent);
+                serviceStatus = Constants.SERVICE_STARTED;
+            }
         }
     }
 
@@ -117,6 +132,10 @@ public class Colocviu1_13MainActivity extends AppCompatActivity {
                 total = 0;
             }
         }
+
+        for (int index = 0; index < Constants.actionTypes.length; index++) {
+            intentFilter.addAction(Constants.actionTypes[index]);
+        }
     }
 
     @Override
@@ -134,5 +153,32 @@ public class Colocviu1_13MainActivity extends AppCompatActivity {
                 total = 0;
             }
         }
+    }
+
+    private MessageBroadcastReceiver messageBroadcastReceiver = new MessageBroadcastReceiver();
+    private class MessageBroadcastReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Log.d("SERVICE_MESSAGE", intent.getStringExtra(Constants.BROADCAST_RECEIVER_EXTRA));
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        registerReceiver(messageBroadcastReceiver, intentFilter);
+    }
+
+    @Override
+    protected void onPause() {
+        unregisterReceiver(messageBroadcastReceiver);
+        super.onPause();
+    }
+
+    @Override
+    protected void onDestroy() {
+        Intent intent = new Intent(this, Colocviu1_13Service.class);
+        stopService(intent);
+        super.onDestroy();
     }
 }
