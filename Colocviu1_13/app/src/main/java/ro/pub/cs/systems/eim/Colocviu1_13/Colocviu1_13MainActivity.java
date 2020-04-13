@@ -73,7 +73,22 @@ public class Colocviu1_13MainActivity extends AppCompatActivity {
                     pressedView.setText(pressed);
                     break;
 
+                case R.id.navigate_button:
+                    Intent intent = new Intent(getApplicationContext(), Colocviu1_13SecondaryActivity.class);
+                    intent.putExtra(Constants.COMMANDS, pressedView.getText().toString());
+                    startActivityForResult(intent, Constants.SECONDARY_ACTIVITY_REQUEST_CODE);
+                    total = 0;
+                    pressedView.setText("");
+                    break;
             }
+        }
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent intent) {
+        if ((requestCode == Constants.SECONDARY_ACTIVITY_REQUEST_CODE) && (intent != null)) {
+            String but = intent.getStringExtra(Constants.RETURN_BUTTON);
+            Toast.makeText(this, "Pressed button: " + but, Toast.LENGTH_LONG).show();
         }
     }
 
